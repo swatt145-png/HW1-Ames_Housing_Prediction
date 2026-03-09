@@ -7,8 +7,8 @@ import shap
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-import tensorflow as tf
-from tensorflow import keras
+# import tensorflow as tf
+# from tensorflow import keras
 
 # Set page config
 st.set_page_config(page_title="Ames Housing Dashboard", layout="wide", page_icon="🏡")
@@ -36,7 +36,7 @@ def load_models():
         'Random Forest': joblib.load('models/random_forest.joblib'),
         'XGBoost': joblib.load('models/xgboost_model.joblib')
     }
-    mlp = keras.models.load_model('models/mlp_model.keras')
+    mlp = joblib.load('models/mlp_model.joblib')
     models['MLP'] = mlp
     
     preprocessor_linear = joblib.load('models/preprocessor_linear.joblib')
