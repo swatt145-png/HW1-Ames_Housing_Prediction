@@ -10,6 +10,9 @@ import os
 # import tensorflow as tf
 # from tensorflow import keras
 
+# Resolve paths relative to this script's directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Set page config
 st.set_page_config(page_title="Ames Housing Dashboard", layout="wide", page_icon="🏡")
 sns.set_theme(style="whitegrid", palette="viridis")
@@ -17,7 +20,7 @@ sns.set_theme(style="whitegrid", palette="viridis")
 # --- LOAD DATA AND MODELS ---
 @st.cache_data
 def load_data():
-    df = pd.read_csv("AmesHousing.csv")
+    df = pd.read_csv(os.path.join(BASE_DIR, "AmesHousing.csv"))
     df_clean = df.drop(columns=['Order', 'PID'])
     X = df_clean.drop(columns=['SalePrice'])
     defaults = {}
@@ -31,23 +34,23 @@ def load_data():
 @st.cache_resource
 def load_models():
     models = {
-        'Linear Regression': joblib.load('models/linear_regression.joblib'),
-        'Decision Tree': joblib.load('models/decision_tree.joblib'),
-        'Random Forest': joblib.load('models/random_forest.joblib'),
-        'XGBoost': joblib.load('models/xgboost_model.joblib')
+        'Linear Regression': joblib.load(os.path.join(BASE_DIR, 'models/linear_regression.joblib')),
+        'Decision Tree': joblib.load(os.path.join(BASE_DIR, 'models/decision_tree.joblib')),
+        'Random Forest': joblib.load(os.path.join(BASE_DIR, 'models/random_forest.joblib')),
+        'XGBoost': joblib.load(os.path.join(BASE_DIR, 'models/xgboost_model.joblib'))
     }
-    mlp = joblib.load('models/mlp_model.joblib')
+    mlp = joblib.load(os.path.join(BASE_DIR, 'models/mlp_model.joblib'))
     models['MLP'] = mlp
-    
-    preprocessor_linear = joblib.load('models/preprocessor_linear.joblib')
-    preprocessor_tree = joblib.load('models/preprocessor_tree.joblib')
-    shap_explainer = joblib.load('models/shap_explainer.joblib')
-    mlp_y_scaler = joblib.load('models/mlp_y_scaler.joblib')
-    
-    with open('results/best_params.json', 'r') as f:
+
+    preprocessor_linear = joblib.load(os.path.join(BASE_DIR, 'models/preprocessor_linear.joblib'))
+    preprocessor_tree = joblib.load(os.path.join(BASE_DIR, 'models/preprocessor_tree.joblib'))
+    shap_explainer = joblib.load(os.path.join(BASE_DIR, 'models/shap_explainer.joblib'))
+    mlp_y_scaler = joblib.load(os.path.join(BASE_DIR, 'models/mlp_y_scaler.joblib'))
+
+    with open(os.path.join(BASE_DIR, 'results/best_params.json'), 'r') as f:
         best_params = json.load(f)
-        
-    metrics = pd.read_csv('results/model_comparison.csv')
+
+    metrics = pd.read_csv(os.path.join(BASE_DIR, 'results/model_comparison.csv'))
     return models, preprocessor_linear, preprocessor_tree, shap_explainer, mlp_y_scaler, best_params, metrics
 
 try:
@@ -152,7 +155,7 @@ with tab2:
     st.header("Descriptive Analytics & EDA")
     
     st.subheader("Target Distribution")
-    dist_img = "results/target_dist.png"
+    dist_img = os.path.join(BASE_DIR, "results/target_dist.png")
     if os.path.exists(dist_img):
         st.image(dist_img, use_column_width=True)
     st.markdown("**Insight:** The target variable `SalePrice` is strongly right-skewed, exhibiting a long tail for highly expensive properties exceeding the &#36;500,000 mark. The vast majority of standard homes are successfully sold between &#36;100,000 and &#36;250,000. Because of this pronounced right skewness, logarithmic transformation of the SalePrice is an effective strategy to help normalize the variance for linear models, reducing the proportional error on luxury outliers.", unsafe_allow_html=True)
@@ -162,46 +165,46 @@ with tab2:
     col1, col2 = st.columns(2)
     
     with col1:
-        if os.path.exists("results/overall_qual_boxplot.png"):
-            st.image("results/overall_qual_boxplot.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/overall_qual_boxplot.png")):
+            st.image(os.path.join(BASE_DIR, "results/overall_qual_boxplot.png"), use_column_width=True)
         st.markdown("**Overall Quality vs Price:** There is a pronounced, exponential positive correlation between overall structural quality and sale price. Variance widens dramatically for the highest-tier homes (ratings 8-10) showing that luxury finishes drastically inflate market ceilings.")
         
-        if os.path.exists("results/neighborhood_bar.png"):
-            st.image("results/neighborhood_bar.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/neighborhood_bar.png")):
+            st.image(os.path.join(BASE_DIR, "results/neighborhood_bar.png"), use_column_width=True)
         st.markdown("**Neighborhood Influence:** Location heavily dictates real estate valuations. Neighborhoods like 'NoRidge' and 'NridgHt' fetch premium median prices averaging well over &#36;300,000, while entry-level neighborhoods like 'MeadowV' or 'IDOTRR' hover tightly around &#36;100,000.", unsafe_allow_html=True)
         
-        if os.path.exists("results/year_built_scatter.png"):
-            st.image("results/year_built_scatter.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/year_built_scatter.png")):
+            st.image(os.path.join(BASE_DIR, "results/year_built_scatter.png"), use_column_width=True)
         st.markdown("**Year Built vs Price:** Newer constructions reliably command premium valuations, demonstrating a steady positive linear trendline scaling continuously upward post-1950. However, fascinatingly dense clusters of highly-valued historic properties persist for homes built prior to 1920, reflecting the unique market demand surrounding historically preserved housing.")
         
-        if os.path.exists("results/garage_cars_box.png"):
-            st.image("results/garage_cars_box.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/garage_cars_box.png")):
+            st.image(os.path.join(BASE_DIR, "results/garage_cars_box.png"), use_column_width=True)
         st.markdown("**Garage Capacity:** Property values jump significantly in the transitions strictly from zero, to one, and then optimally to a two-car garage format. The data reveals steeply diminishing returns passing the 3-car threshold, implying that standard multi-vehicle coverage saturates buyer demands.")
         
     with col2:
-        if os.path.exists("results/gr_liv_area_scatter.png"):
-            st.image("results/gr_liv_area_scatter.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/gr_liv_area_scatter.png")):
+            st.image(os.path.join(BASE_DIR, "results/gr_liv_area_scatter.png"), use_column_width=True)
         st.markdown("**Living Area vs Price:** Above-ground living area scales almost linearly with price, acting as one of the most reliable prediction baselines. We observe a strict correlation though minor outliers exist where enormous footprints nevertheless sold cheaply, potentially due to remarkably poor condition constraints.")
         
-        if os.path.exists("results/bldg_type_box.png"):
-            st.image("results/bldg_type_box.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/bldg_type_box.png")):
+            st.image(os.path.join(BASE_DIR, "results/bldg_type_box.png"), use_column_width=True)
         st.markdown("**Building Type:** Single-family homes represent the overwhelming bulk of the local market and inherently contain the highest variance in sales prices. Townhome End units also command very strong margins compared to classic two-family conversions, indicating high demand for attached luxury.")
         
-        if os.path.exists("results/central_air_box.png"):
-            st.image("results/central_air_box.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/central_air_box.png")):
+            st.image(os.path.join(BASE_DIR, "results/central_air_box.png"), use_column_width=True)
         st.markdown("**Central Air Market Baseline:** The integration of modern central air conditioning operates almost categorically as a baseline gatekeeper for upscale property evaluation. Homes lacking central air systems suffer devastating price ceilings rarely escaping the &#36;150,000 limit, making it a critical fundamental investment.", unsafe_allow_html=True)
         
     st.divider()
     
     st.subheader("Neighborhood Categorical Intersections")
-    if os.path.exists("results/qual_neigh_bar.png"):
-        st.image("results/qual_neigh_bar.png", use_column_width=True)
+    if os.path.exists(os.path.join(BASE_DIR, "results/qual_neigh_bar.png")):
+        st.image(os.path.join(BASE_DIR, "results/qual_neigh_bar.png"), use_column_width=True)
     st.markdown("**Premium Multiplier:** This grouped configuration tracking the top 5 elite neighborhoods proves that location exponentially scales base structural quality into massive profits. Noticeably, achieving an 'Overall Qual' tier of 9 or 10 inside premium districts uniquely propels average valuations dangerously close to &#36;500,000.", unsafe_allow_html=True)
     st.divider()
     
     st.subheader("Correlation Heatmap")
-    if os.path.exists("results/corr_heatmap.png"):
-        st.image("results/corr_heatmap.png", use_column_width=True)
+    if os.path.exists(os.path.join(BASE_DIR, "results/corr_heatmap.png")):
+        st.image(os.path.join(BASE_DIR, "results/corr_heatmap.png"), use_column_width=True)
     st.markdown("""
     **Understanding the Correlations:** The heatmap above reveals that `Overall Qual` (0.80) and `Gr Liv Area` (0.71) represent the strongest independent linear drivers of a home's worth. Features associated with storage sizing also score highly, notably `Garage Cars` (0.65) and `Total Bsmt SF` (0.63). 
     
@@ -222,8 +225,8 @@ with tab3:
     st.markdown("""
     **Model Performance Trade-offs:** The validation results clearly indicate that **XGBoost performed best**, delivering an R² over 0.915 and securing the lowest RMSE by a considerable margin. Our **Decision Tree was the weakest performer**, suffering from clear overfitting and depth constraints ($RMSE \\approx &#36;30,900$). Surprisingly, the standard **Linear Regression** model established an exceptionally strong baseline performance ($R² = 0.898$), keeping tight pace with the complex Neural Network. The fundamental trade-off here lies between interpretation and accuracy—while Ridge Linear Regression explicitly details parameter coefficients linearly, the highly accurate XGBoost operates natively as a black box requiring secondary SHAP algorithms to explain identical decisions.
     """, unsafe_allow_html=True)
-    if os.path.exists("results/model_rmse_compare.png"):
-        st.image("results/model_rmse_compare.png", use_column_width=True)
+    if os.path.exists(os.path.join(BASE_DIR, "results/model_rmse_compare.png")):
+        st.image(os.path.join(BASE_DIR, "results/model_rmse_compare.png"), use_column_width=True)
         
     st.divider()
     
@@ -234,50 +237,50 @@ with tab3:
         st.subheader("Linear Regression Performance")
         c1, c2 = st.columns(2)
         with c1:
-            if os.path.exists("results/lr_pred_actual.png"):
-                st.image("results/lr_pred_actual.png", use_column_width=True)
+            if os.path.exists(os.path.join(BASE_DIR, "results/lr_pred_actual.png")):
+                st.image(os.path.join(BASE_DIR, "results/lr_pred_actual.png"), use_column_width=True)
             st.caption("Points plotting closer to the red diagonal indicate accurate predictions. The linear model holds well up to &#36;300K but struggles slightly on massive valuation properties.", unsafe_allow_html=True)
         with c2:
-            if os.path.exists("results/lr_residuals.png"):
-                st.image("results/lr_residuals.png", use_column_width=True)
+            if os.path.exists(os.path.join(BASE_DIR, "results/lr_residuals.png")):
+                st.image(os.path.join(BASE_DIR, "results/lr_residuals.png"), use_column_width=True)
             st.caption("The residuals plot exhibits a subtle funneling (heteroscedasticity) effect toward higher price bounds, suggesting variances inflate alongside premium property tiers.")
 
     with st.expander("Decision Tree", expanded=False):
         st.subheader("Decision Tree Performance")
         c1, c2 = st.columns(2)
         with c1:
-            if os.path.exists("results/dt_pred_actual.png"):
-                st.image("results/dt_pred_actual.png", use_column_width=True)
+            if os.path.exists(os.path.join(BASE_DIR, "results/dt_pred_actual.png")):
+                st.image(os.path.join(BASE_DIR, "results/dt_pred_actual.png"), use_column_width=True)
             st.caption("Notice the clear 'staircase' clustering pattern globally typical of un-ensembled tree architectures, forcing unique sale prices into rigid horizontal bucket bins.")
         with c2:
             st.empty()
             
         st.markdown("#### Truncated Tree Structure Visualization")
-        if os.path.exists("results/decision_tree_viz.png"):
-            st.image("results/decision_tree_viz.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/decision_tree_viz.png")):
+            st.image(os.path.join(BASE_DIR, "results/decision_tree_viz.png"), use_column_width=True)
 
     with st.expander("Random Forest", expanded=False):
         st.subheader("Random Forest Performance")
-        if os.path.exists("results/rf_pred_actual.png"):
-            st.image("results/rf_pred_actual.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/rf_pred_actual.png")):
+            st.image(os.path.join(BASE_DIR, "results/rf_pred_actual.png"), use_column_width=True)
         st.caption("While heavily performant, the Random Forest model's predictions occasionally begin to underestimate the severe variance of luxury properties crossing the &#36;500K threshold compared to boosted equivalents.", unsafe_allow_html=True)
 
     with st.expander("XGBoost (Best Model)", expanded=True):
         st.subheader("XGBoost Performance")
-        if os.path.exists("results/xgb_pred_actual.png"):
-            st.image("results/xgb_pred_actual.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/xgb_pred_actual.png")):
+            st.image(os.path.join(BASE_DIR, "results/xgb_pred_actual.png"), use_column_width=True)
         st.caption("XGBoost demonstrates exceptionally tight clustering universally around the diagonal, succeeding flawlessly across mid-range home prices and managing high-end outliers effectively.")
 
     with st.expander("MLP Neural Network", expanded=False):
         st.subheader("Multi-Layer Perceptron (MLP)")
         c1, c2 = st.columns(2)
         with c1:
-            if os.path.exists("results/mlp_pred_actual.png"):
-                st.image("results/mlp_pred_actual.png", use_column_width=True)
+            if os.path.exists(os.path.join(BASE_DIR, "results/mlp_pred_actual.png")):
+                st.image(os.path.join(BASE_DIR, "results/mlp_pred_actual.png"), use_column_width=True)
             st.caption("Scaling target variables allowed the Deep MLP architecture to correctly optimize and mirror Ridge-level outputs, keeping firm pace with ensemble frameworks.")
         with c2:
-            if os.path.exists("results/mlp_loss_curve.png"):
-                st.image("results/mlp_loss_curve.png", use_column_width=True)
+            if os.path.exists(os.path.join(BASE_DIR, "results/mlp_loss_curve.png")):
+                st.image(os.path.join(BASE_DIR, "results/mlp_loss_curve.png"), use_column_width=True)
             st.caption("Cross-validation training curves demonstrate clean MSE descent convergence safely devoid of divergent overfitting spikes.")
 
     st.divider()
@@ -308,18 +311,18 @@ with tab4:
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("#### Feature Influence (Beeswarm Plot)")
-        if os.path.exists("results/shap_summary.png"):
-            st.image("results/shap_summary.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/shap_summary.png")):
+            st.image(os.path.join(BASE_DIR, "results/shap_summary.png"), use_column_width=True)
     with col2:
         st.markdown("#### Mean Absolute Impact (Bar Plot)")
-        if os.path.exists("results/shap_bar.png"):
-            st.image("results/shap_bar.png", use_column_width=True)
+        if os.path.exists(os.path.join(BASE_DIR, "results/shap_bar.png")):
+            st.image(os.path.join(BASE_DIR, "results/shap_bar.png"), use_column_width=True)
             
     st.divider()
     
     st.markdown("#### Static Trace: Explaining the Most Expensive Dataset Home")
-    if os.path.exists("results/shap_waterfall_static.png"):
-        st.image("results/shap_waterfall_static.png", use_column_width=True)
+    if os.path.exists(os.path.join(BASE_DIR, "results/shap_waterfall_static.png")):
+        st.image(os.path.join(BASE_DIR, "results/shap_waterfall_static.png"), use_column_width=True)
         st.caption("This static waterfall diagram definitively traces how the native XGBoost model mathematically validated the expected price precisely for the single highest-valued property in the strict training subset. Launching dynamically from the underlying market base average price established at approx. &#36;181,000, compounding variables explicitly including uniquely outstanding `Overall Qual`, sprawling unconstrained `Gr Liv Area`, and premium exterior finishes overwhelmingly successfully drive the highly calculated terminal valuation smoothly past &#36;600,000 vertically.", unsafe_allow_html=True)
         
     st.divider()
