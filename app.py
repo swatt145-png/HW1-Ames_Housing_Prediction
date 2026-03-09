@@ -2,6 +2,18 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
+# Patch for sklearn version compatibility (models saved with 1.6.1, Cloud runs 1.8.0)
+try:
+    from sklearn.compose._column_transformer import _RemainderColsList
+except (ImportError, AttributeError):
+    import sklearn.compose._column_transformer as _ct_module
+    class _RemainderColsList(list):
+        def __init__(self, *args, columns=None, future_dtype=None, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.columns = columns
+            self.future_dtype = future_dtype
+    _ct_module._RemainderColsList = _RemainderColsList
+
 import streamlit as st
 import pandas as pd
 import numpy as np
